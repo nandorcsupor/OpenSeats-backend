@@ -1,5 +1,3 @@
-from shutil import rmtree
-
 from brownie import Ticket, accounts, FirstBuyer, SecondBuyer
 from .scripts import get_account
 
@@ -10,40 +8,26 @@ OPENSEA_URL = "https://testnets.opensea.io/assets/{}/{}"
 def deploy_ticket():
     account = get_account()
     max_tickets = 10000
-    ticket_prices = [100, 75, 65, 50]  # In USD
-    gate_names = ["Gate A", "Gate B", "Gate C", "Gate D"]
+    tokenName = "Ticket"
+    tokenSymbol = "TK"
+
+    venue_config = (
+        ["Gate A", "Gate B", "Gate C", "Gate D"],
+        ["Section A", "Section B", "Section C", "Section D"],
+        [10, 10, 10, 10],
+        [100, 100, 100, 100],
+        [100, 75, 65, 50]  # In USD
+    )
 
     ticket_contract = Ticket.deploy(
         max_tickets,
-        ticket_prices,
-        gate_names,
+        tokenName,
+        tokenSymbol,
+        venue_config,
         {"from": account}
     )
 
     print(f"FootballTicket deployed at address: {ticket_contract.address}")
-
-    gates = ["Gate A", "Gate B", "Gate C", "Gate D"]
-    sections = ["Section A", "Section B", "Section C"]
-    numberOfRowsPerSection = [10, 10, 10]
-    numberOfSeatsPerRow = [100, 100, 100]
-    pricesPerSection = [100, 75, 65]  # In USD
-
-    message = "MY MESSAGE ASD"
-    ticket_contract.emitSomething(
-        message,
-        {"from": account}
-    )
-    '''
-    ticket_contract.setTicketAvailability(
-        gates,
-        sections,
-        numberOfRowsPerSection,
-        numberOfSeatsPerRow,
-        pricesPerSection,
-        {"from": account, 'allow_revert':True, "gas_limit": 10000000}
-    )
-    '''
-    print(f"SetTicketAvailability finished!")
 
 
 def deploy_buyers():

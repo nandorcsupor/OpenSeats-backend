@@ -25,15 +25,21 @@ contract Ticket is ERC721URIStorage {
     }
 
     // keep track of available tickets
-    mapping(bytes32 => SeatingInfo) public availableTickets;
-
     mapping(uint256 => TicketData) public tickets;
+
+    mapping(bytes32 => bool) public mintedTickets;
 
     AggregatorV3Interface internal priceFeed;
 
     uint256 public maxTickets;
     uint256[4] public ticketPrices;
     string[] public gateNames;
+
+    string[] public _gates;
+    string[] public _sections;
+    uint256[] public _numberOfRowsPerSection;
+    uint256[] public _numberOfSeatsPerRow;
+    uint256[] public _pricesPerSection;
 
     // Event
     event TicketMinted(
@@ -45,125 +51,102 @@ contract Ticket is ERC721URIStorage {
         uint256 seat
     );
 
-    event TicketAvailabilityChanged(
-        string gate,
-        string section,
-        uint256 row,
-        uint256 seat,
-        bool isAvailable
-    );
+    struct TicketParams {
+        string[] gates;
+        string[] sections;
+        uint256[] numberOfRowsPerSection;
+        uint256[] numberOfSeatsPerRow;
+        uint256[] pricesPerSection;
+    }
+
+    struct VenueConfiguration {
+        string[] gates;
+        string[] sections;
+        uint256[] numberOfRowsPerSection;
+        uint256[] numberOfSeatsPerRow;
+        uint256[] pricesPerSection;
+    }
 
     event requirementsPassed(string passed);
 
     constructor(
         uint256 _maxTickets,
-        uint256[4] memory _ticketPrices,
-        string[] memory _gateNames
-    ) ERC721("Ticket", "TK") {
+        string memory tokenName,
+        string memory tokenSymbol,
+        VenueConfiguration memory config
+    ) ERC721(tokenName, tokenSymbol) {
         // Set the address of the Chainlink ETH/USD price feed (on Sepolia testnet)
         priceFeed = AggregatorV3Interface(
             0x694AA1769357215DE4FAC081bf1f309aDC325306
         );
 
-        maxTickets = _maxTickets;
-        ticketPrices = _ticketPrices;
-        gateNames = _gateNames;
-    }
-
-    function emitSomething(string memory message) public {
-        emit requirementsPassed(message);
-    }
-
-    function setTicketAvailability(
-        string[] memory gates,
-        string[] memory sections,
-        uint256[] memory numberOfRowsPerSection,
-        uint256[] memory numberOfSeatsPerRow,
-        uint256[] memory pricesPerSection
-    ) public {
-        // Emit event
-        emit requirementsPassed("BEFORE PASSEDDDD!!!!!");
-        require(gates.length > 0, "Gates cannot be empty");
-        require(sections.length > 0, "Sections cannot be empty");
+        require(config.gates.length > 0, "Gates cannot be empty");
+        require(config.sections.length > 0, "Sections cannot be empty");
         require(
-            numberOfRowsPerSection.length == sections.length,
+            config.numberOfRowsPerSection.length == config.sections.length,
             "Number of rows should be equal to the number of sections"
         );
         require(
-            numberOfSeatsPerRow.length == numberOfRowsPerSection.length,
+            config.numberOfSeatsPerRow.length ==
+                config.numberOfRowsPerSection.length,
             "Number of seats should be equal to the number of rows"
         );
         require(
-            pricesPerSection.length == sections.length,
+            config.pricesPerSection.length == config.sections.length,
             "Prices should be equal to the number of sections"
         );
 
-        // Emit event
-        emit requirementsPassed("passed");
-
-        for (uint256 g = 0; g < gates.length; g++) {
-            for (uint256 s = 0; s < sections.length; s++) {
-                for (uint256 r = 1; r <= numberOfRowsPerSection[s]; r++) {
-                    for (
-                        uint256 seat = 1;
-                        seat <= numberOfSeatsPerRow[r - 1];
-                        seat++
-                    ) {
-                        bytes32 key = keccak256(
-                            abi.encodePacked(gates[g], sections[s], r, seat)
-                        );
-
-                        availableTickets[key] = SeatingInfo(
-                            sections[s],
-                            r,
-                            seat,
-                            true
-                        );
-
-                        // Emit event
-                        emit TicketAvailabilityChanged(
-                            gates[g],
-                            sections[s],
-                            r,
-                            seat,
-                            true
-                        );
-                    }
-                }
-            }
-        }
+        maxTickets = _maxTickets;
+        _gates = config.gates;
+        _sections = config.sections;
+        _numberOfRowsPerSection = config.numberOfRowsPerSection;
+        _numberOfSeatsPerRow = config.numberOfSeatsPerRow;
+        _pricesPerSection = config.pricesPerSection;
     }
 
     function mintTicket(
         address to,
-        string memory seatingInfo,
         string memory gate,
+        string memory section,
+        uint256 row,
+        uint256 seat,
         uint8 category,
-        string memory tokenURI_
+        string memory tokenURI_,
+        TicketParams memory params
     ) public payable {
+        // Validate gate and section inputs
+        require(isValidGate(params.gates, gate), "Invalid gate");
+        require(isValidSection(params.sections, section), "Invalid section");
+
+        // Validate row and seat inputs
+        require(
+            row > 0 && row <= params.numberOfRowsPerSection[category - 1],
+            "Invalid row"
+        );
+        require(
+            seat > 0 && seat <= params.numberOfSeatsPerRow[category - 1],
+            "Invalid seat"
+        );
+
+        // Validate category input
         require(category >= 1 && category <= 4, "Invalid category");
-        require(_tokenIdCounter.current() < maxTickets, "Max tickets reached");
 
         // Check if the ticket with the given seating info is available
-        bytes32 ticketKey = keccak256(abi.encodePacked(seatingInfo, gate));
-        require(
-            availableTickets[ticketKey].isAvailable,
-            "Ticket not available"
+        bytes32 ticketKey = keccak256(
+            abi.encodePacked(gate, section, row, seat)
         );
-
-        // Parse seatingInfo
-        (string memory section, uint256 row, uint256 seat) = parseSeatingInfo(
-            seatingInfo
-        );
+        require(!mintedTickets[ticketKey], "Ticket not available");
 
         // Calculate the price in ETH using the current ETH/USD price
-        uint256 priceInETH = (ticketPrices[category - 1] * 1e18) /
+        uint256 priceInETH = (params.pricesPerSection[category - 1] * 1e18) /
             getETHUSDPrice();
-
         require(msg.value >= priceInETH, "Not enough ETH sent");
 
         _tokenIdCounter.increment();
         uint256 tokenId = _tokenIdCounter.current();
+
+        // Update mintedTickets mapping
+        mintedTickets[ticketKey] = true;
 
         // Pass SeatingInfo struct to TicketData
         tickets[tokenId] = TicketData(
@@ -173,14 +156,43 @@ contract Ticket is ERC721URIStorage {
             false
         );
 
-        // Decrease the availability of the ticket with the given seating info
-        availableTickets[ticketKey].isAvailable = false;
-
         _safeMint(to, tokenId);
         _setTokenURI(tokenId, tokenURI_);
 
         // Emit event
         emit TicketMinted(to, tokenId, gate, section, row, seat);
+    }
+
+    // Helper function to validate gate input
+    function isValidGate(
+        string[] memory _gates,
+        string memory gate
+    ) public view returns (bool) {
+        for (uint256 i = 0; i < _gates.length; i++) {
+            if (
+                keccak256(abi.encodePacked(_gates[i])) ==
+                keccak256(abi.encodePacked(gate))
+            ) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    // Helper function to validate section input
+    function isValidSection(
+        string[] memory _sections,
+        string memory section
+    ) public view returns (bool) {
+        for (uint256 i = 0; i < _sections.length; i++) {
+            if (
+                keccak256(abi.encodePacked(_sections[i])) ==
+                keccak256(abi.encodePacked(section))
+            ) {
+                return true;
+            }
+        }
+        return false;
     }
 
     function parseSeatingInfo(
