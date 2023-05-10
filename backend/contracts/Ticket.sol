@@ -8,7 +8,7 @@ import "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 
 contract Ticket is ERC721URIStorage {
     using Counters for Counters.Counter;
-    Counters.Counter private _tokenIdCounter;
+    Counters.Counter public _tokenIdCounter;
 
     struct SeatingInfo {
         string section;
@@ -111,20 +111,19 @@ contract Ticket is ERC721URIStorage {
         uint256 row,
         uint256 seat,
         uint8 category,
-        string memory tokenURI_,
-        TicketParams memory params
+        string memory tokenURI_
     ) public payable {
         // Validate gate and section inputs
-        require(isValidGate(params.gates, gate), "Invalid gate");
-        require(isValidSection(params.sections, section), "Invalid section");
+        require(isValidGate(_gates, gate), "Invalid gate");
+        require(isValidSection(_sections, section), "Invalid section");
 
         // Validate row and seat inputs
         require(
-            row > 0 && row <= params.numberOfRowsPerSection[category - 1],
+            row > 0 && row <= _numberOfRowsPerSection[category - 1],
             "Invalid row"
         );
         require(
-            seat > 0 && seat <= params.numberOfSeatsPerRow[category - 1],
+            seat > 0 && seat <= _numberOfSeatsPerRow[category - 1],
             "Invalid seat"
         );
 
@@ -138,7 +137,7 @@ contract Ticket is ERC721URIStorage {
         require(!mintedTickets[ticketKey], "Ticket not available");
 
         // Calculate the price in ETH using the current ETH/USD price
-        uint256 priceInETH = (params.pricesPerSection[category - 1] * 1e18) /
+        uint256 priceInETH = (_pricesPerSection[category - 1] * 1e18) /
             getETHUSDPrice();
         require(msg.value >= priceInETH, "Not enough ETH sent");
 

@@ -2,7 +2,7 @@ from brownie import Ticket, accounts, FirstBuyer, SecondBuyer
 from .scripts import get_account
 
 # token_uri = "https://ipfs.io/ipfs/QmVBwKkVxeDLu6jB2A714rcD7b827Uc1JVYkLafTnrd8sp?filename=karl.json"
-token_uri = "https://ipfs.io/ipfs/QmTTYmrKH3p7d2NpRpZvmPb5h5dcT6VXmdpvQ5o76aenTT?filename=lfc.json"
+token_uri = "https://ipfs.io/ipfs/QmTTYmrKH3p7d2NpRpZvmPb5h5dcT6VXmdpvQ5o76aenTT?filename=lfc.png"
 OPENSEA_URL = "https://testnets.opensea.io/assets/{}/{}"
 
 def deploy_ticket():
@@ -10,13 +10,19 @@ def deploy_ticket():
     max_tickets = 10000
     tokenName = "Ticket"
     tokenSymbol = "TK"
+    address = account.address
+    gate = "Gate A"
+    section = "Section A"
+    row = 5
+    seat = 69
+    category = 2
 
     venue_config = (
         ["Gate A", "Gate B", "Gate C", "Gate D"],
         ["Section A", "Section B", "Section C", "Section D"],
         [10, 10, 10, 10],
         [100, 100, 100, 100],
-        [100, 75, 65, 50]  # In USD
+        [4, 3, 2, 1]  # In USD
     )
 
     ticket_contract = Ticket.deploy(
@@ -28,6 +34,31 @@ def deploy_ticket():
     )
 
     print(f"FootballTicket deployed at address: {ticket_contract.address}")
+
+    # Calculate the price in ETH using the current ETH/USD price
+    price_in_usd = venue_config[4][category - 1]
+    eth_usd_price = ticket_contract.getETHUSDPrice.call()
+    price_in_eth = (price_in_usd * 1e18) // eth_usd_price
+
+    ticket_contract.mintTicket(
+        address,
+        gate,
+        section,
+        row,
+        seat,
+        category,
+        token_uri,
+        {"from": account, "value": price_in_eth}
+    )
+
+    # Check if the ticket was minted successfully
+    ticket_id = 1  # Assumes that this is the first ticket minted
+    ticket_data = ticket_contract.tickets(ticket_id)
+    print('TICKET DATA:', ticket_data)
+    print('Counter:', ticket_contract._tokenIdCounter())
+    print(f"View your NFT at {OPENSEA_URL.format(ticket_contract.address, ticket_contract._tokenIdCounter() -1)}")
+
+    return ticket_contract
 
 
 def deploy_buyers():
