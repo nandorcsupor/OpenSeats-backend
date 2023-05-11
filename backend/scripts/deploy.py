@@ -2,7 +2,7 @@ from brownie import Ticket, accounts, FirstBuyer, SecondBuyer
 from .scripts import get_account
 
 # token_uri = "https://ipfs.io/ipfs/QmVBwKkVxeDLu6jB2A714rcD7b827Uc1JVYkLafTnrd8sp?filename=karl.json"
-token_uri = "https://ipfs.io/ipfs/QmTTYmrKH3p7d2NpRpZvmPb5h5dcT6VXmdpvQ5o76aenTT?filename=lfc.png"
+token_uri = "https://ipfs.io/ipfs/QmTH4yaeK5YrPADLmZQm3ne4GVb24HD42gNggKhRX6xBe6?filename=lfc.json"
 OPENSEA_URL = "https://testnets.opensea.io/assets/{}/{}"
 
 def deploy_ticket():
@@ -60,6 +60,13 @@ def deploy_ticket():
 
     return ticket_contract
 
+
+# TODO - Generate a new JSON file - with attributes full of seating info and auto upload it to IPFS ?
+# TODO - Maybe Generate a QR code with the seating info instead ? This way we could make sure that
+# TODO - admission to a match is sorted. - or maybe generate that on the frontend ?
+# TODO - or we can check the holders and maybe use that during admission somehow ? - Some built in
+# TODO - Function in a wallet - 
+# TODO - LOOK 
 
 def deploy_buyers():
     account = get_account()
