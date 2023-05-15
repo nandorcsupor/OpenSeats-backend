@@ -5,6 +5,7 @@ import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
+import "@openzeppelin/contracts/utils/Strings.sol";
 
 contract Ticket is ERC721URIStorage {
     using Counters for Counters.Counter;
@@ -70,15 +71,18 @@ contract Ticket is ERC721URIStorage {
     event requirementsPassed(string passed);
 
     constructor(
+        address _priceFeedAddress,
         uint256 _maxTickets,
         string memory tokenName,
         string memory tokenSymbol,
         VenueConfiguration memory config
     ) ERC721(tokenName, tokenSymbol) {
         // Set the address of the Chainlink ETH/USD price feed (on Sepolia testnet)
-        priceFeed = AggregatorV3Interface(
-            0x694AA1769357215DE4FAC081bf1f309aDC325306
-        );
+        // priceFeed = AggregatorV3Interface(
+        // 0x694AA1769357215DE4FAC081bf1f309aDC325306
+        //);
+
+        priceFeed = AggregatorV3Interface(_priceFeedAddress);
 
         require(config.gates.length > 0, "Gates cannot be empty");
         require(config.sections.length > 0, "Sections cannot be empty");
@@ -265,8 +269,15 @@ contract Ticket is ERC721URIStorage {
 
             uint256 maxResalePrice = ticket.price + ((ticket.price * 5) / 100);
             require(
-                msg.value >= maxResalePrice,
-                "Resale price is too high (> 5%)"
+                msg.value <= maxResalePrice,
+                string(
+                    abi.encodePacked(
+                        "Resale price is too high (> 5%). Max Resale Price: ",
+                        Strings.toString(maxResalePrice),
+                        ". Current Value: ",
+                        Strings.toString(msg.value)
+                    )
+                )
             );
 
             ticket.isResold = true;

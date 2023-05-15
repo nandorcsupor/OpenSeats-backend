@@ -1,4 +1,4 @@
-from brownie import Ticket, accounts, FirstBuyer, SecondBuyer
+from brownie import Ticket, accounts, FirstBuyer, SecondBuyer, config, network
 from .scripts import get_account
 
 # token_uri = "https://ipfs.io/ipfs/QmVBwKkVxeDLu6jB2A714rcD7b827Uc1JVYkLafTnrd8sp?filename=karl.json"
@@ -26,6 +26,7 @@ def deploy_ticket():
     )
 
     ticket_contract = Ticket.deploy(
+        config["networks"][network.show_active()]["eth_usd_price_feed"],
         max_tickets,
         tokenName,
         tokenSymbol,
