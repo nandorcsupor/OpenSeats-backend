@@ -14,3 +14,7 @@ where true fans get their tickets![facebook_profile_image](https://user-images.g
 - To run
 brownie test --network mainnet-fork
 
+# Run on Seplia
+- brownie run scripts/deploy.py --network sepolia
+
+

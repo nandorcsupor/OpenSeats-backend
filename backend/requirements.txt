@@ -1,0 +1,4 @@
+Brownie==0.5.1
+web3==5.31.3
+fastapi
+uvicorn
