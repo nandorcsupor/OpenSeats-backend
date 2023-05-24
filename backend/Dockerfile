@@ -11,8 +11,8 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy the entire project directory to the container
-COPY api /app/api
+COPY . /app
 
 # Set the command to run your app
-CMD ["python3", "/app/api/api.py"]
+CMD ["python", "/app/api/api.py"]
 

@@ -25,6 +25,8 @@ contract Ticket is ERC721URIStorage {
         bool isResold;
     }
 
+    uint256 public date;
+
     // keep track of available tickets
     mapping(uint256 => TicketData) public tickets;
 
@@ -75,7 +77,8 @@ contract Ticket is ERC721URIStorage {
         uint256 _maxTickets,
         string memory tokenName,
         string memory tokenSymbol,
-        VenueConfiguration memory config
+        VenueConfiguration memory config,
+        uint256 _date
     ) ERC721(tokenName, tokenSymbol) {
         // Set the address of the Chainlink ETH/USD price feed (on Sepolia testnet)
         // priceFeed = AggregatorV3Interface(
@@ -106,6 +109,11 @@ contract Ticket is ERC721URIStorage {
         _numberOfRowsPerSection = config.numberOfRowsPerSection;
         _numberOfSeatsPerRow = config.numberOfSeatsPerRow;
         _pricesPerSection = config.pricesPerSection;
+        date = _date;
+    }
+
+    function isMintingOpen() public {
+        require(block.timestamp < (date - 1 days), "Minting is closed");
     }
 
     function mintTicket(
@@ -117,6 +125,8 @@ contract Ticket is ERC721URIStorage {
         uint8 category,
         string memory tokenURI_
     ) public payable {
+        // Check if Minting is open
+        isMintingOpen();
         // Validate gate and section inputs
         require(isValidGate(_gates, gate), "Invalid gate");
         require(isValidSection(_sections, section), "Invalid section");

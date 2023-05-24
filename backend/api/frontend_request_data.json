@@ -1,0 +1,34 @@
+// MATCH DATA: 
+{
+    "max_tickets": 10000,
+    "date": "28/08/2023",
+    "token_name": "Liverpool-Chelsea",
+    "token_symbol": "LC",
+    "gates": [
+        {
+            "gate": "First",
+            "sections": [
+                {
+                    "row": 10,
+                    "seats": 100,
+                    "category": 2
+                },
+                {
+                    "row": 5,
+                    "seats": 100,
+                    "category": 1
+                }
+            ]
+        },
+        {
+            "gate": "Second",
+            "sections": [
+                {
+                    "row": 100,
+                    "seats": 100,
+                    "category": 3
+                }
+            ]
+        }
+    ]
+}

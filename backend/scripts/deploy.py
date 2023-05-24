@@ -25,12 +25,15 @@ def deploy_ticket():
         [4, 3, 2, 1]  # In USD
     )
 
+    date_timestamp = 1717350459
+
     ticket_contract = Ticket.deploy(
         config["networks"][network.show_active()]["eth_usd_price_feed"],
         max_tickets,
         tokenName,
         tokenSymbol,
         venue_config,
+        date_timestamp,
         {"from": account}
     )
 

@@ -3,7 +3,7 @@ from web3 import Web3
 from logging import Logger
 
 logger = Logger(name='loggerke')
-
+# Directly tests the smart contract itself - NOT the deploy script.
 def test_ticket_resale_limit():
     # Deploy the Ticket contract
     # TODO - Make tokenId 

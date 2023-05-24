@@ -1,7 +1,9 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, status
 from pydantic import BaseModel
 import uvicorn
 from fastapi.middleware.cors import CORSMiddleware
+
+from backend.scripts.deploy_match import convert_to_timestamp, deploy_match
 
 app = FastAPI()
 
@@ -19,10 +21,22 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+class VenueConfig(BaseModel):
+    pass
+
+
+venue_config = (
+        ["Gate A", "Gate B", "Gate C", "Gate D"],
+        ["Section A", "Section B", "Section C", "Section D"],
+        [10, 10, 10, 10],
+        [100, 100, 100, 100],
+        [4, 3, 2, 1]  # In USD
+    )
+
 class MatchCreateRequest(BaseModel):
     max_tickets: int
-    tokenName: str
-    tokenSymbol: str
+    token_name: str
+    token_symbol: str
     gate: str
     section: str
     row: int
@@ -31,21 +45,23 @@ class MatchCreateRequest(BaseModel):
 
 @app.post('/create-match')
 def create_match(match_data: dict):
-    print('MATCH DATA:', match_data)
-    # Extract the necessary fields from the request body
-    # max_tickets = match_data.max_tickets
-    # tokenName = match_data.tokenName
-    # tokenSymbol = match_data.tokenSymbol
-    # gate = match_data.gate
-    # section = match_data.section
-    # row = match_data.row
-    # seat = match_data.seat
-    # category = match_data.category
+    if not match_data:
+        status_code = status.HTTP_204_NO_CONTENT
+        message = "Request body is empty"
+        return {"message": message, "status_code": status_code}
 
-    # Rest of your Brownie code...
-    # deploy_ticket(max_tickets, tokenName, tokenSymbol, gate, section, row, seat, category)
+    address = deploy_match(
+        max_tickets=match_data['max_tickets'], 
+        token_name=match_data['token_name'], 
+        token_symbol=match_data['token_symbol'],
+        venue_config=venue_config,
+        date=convert_to_timestamp(match_data['date'])
+    )
 
-    return {'message': 'Match created successfully'}
+    status_code = status.HTTP_200_OK
+    message = f"Successfully deployed match smart contract at: {address}"
+
+    return {"message": message, "status_code": status_code}
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)

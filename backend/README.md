@@ -18,3 +18,7 @@ brownie test --network mainnet-fork
 - brownie run scripts/deploy.py --network sepolia
 
 
+
+# To RUN API
+    - docker-compose up
+
