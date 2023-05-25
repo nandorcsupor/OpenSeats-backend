@@ -3,7 +3,8 @@ from pydantic import BaseModel
 import uvicorn
 from fastapi.middleware.cors import CORSMiddleware
 
-from backend.scripts.deploy_match import convert_to_timestamp, deploy_match
+from scripts.deploy_match import convert_to_timestamp, deploy_match
+
 
 app = FastAPI()
 

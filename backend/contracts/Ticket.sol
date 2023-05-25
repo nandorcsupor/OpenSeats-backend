@@ -128,8 +128,8 @@ contract Ticket is ERC721URIStorage {
         // Check if Minting is open
         isMintingOpen();
         // Validate gate and section inputs
-        require(isValidGate(_gates, gate), "Invalid gate");
-        require(isValidSection(_sections, section), "Invalid section");
+        require(isValidGate(gate), "Invalid gate");
+        require(isValidSection(section), "Invalid section");
 
         // Validate row and seat inputs
         require(
@@ -177,10 +177,7 @@ contract Ticket is ERC721URIStorage {
     }
 
     // Helper function to validate gate input
-    function isValidGate(
-        string[] memory _gates,
-        string memory gate
-    ) public view returns (bool) {
+    function isValidGate(string memory gate) public view returns (bool) {
         for (uint256 i = 0; i < _gates.length; i++) {
             if (
                 keccak256(abi.encodePacked(_gates[i])) ==
@@ -193,10 +190,7 @@ contract Ticket is ERC721URIStorage {
     }
 
     // Helper function to validate section input
-    function isValidSection(
-        string[] memory _sections,
-        string memory section
-    ) public view returns (bool) {
+    function isValidSection(string memory section) public view returns (bool) {
         for (uint256 i = 0; i < _sections.length; i++) {
             if (
                 keccak256(abi.encodePacked(_sections[i])) ==
@@ -269,8 +263,8 @@ contract Ticket is ERC721URIStorage {
         address from,
         address to,
         uint256 tokenId
-    ) internal virtual override {
-        super._beforeTokenTransfer(from, to, tokenId);
+    ) internal virtual {
+        super._beforeTokenTransfer(from, to, tokenId, 1);
 
         // Check if this is a resale attempt
         if (from != address(0)) {
