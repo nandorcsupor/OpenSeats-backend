@@ -26,3 +26,6 @@ brownie test --network mainnet-fork
     - Everything is running locally - deploy somewhere
         - Currently using a local postgresql database.
 
+    - Update the fetching of available matches - use a new method - currently we do an api call every second.
+
+

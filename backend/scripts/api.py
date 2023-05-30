@@ -72,6 +72,33 @@ def create_match(match_data: dict):
 
     return {"message": message, "status_code": error_code}
 
+@app.get("/get-matches")
+def get_matches():
+    conn = psycopg2.connect(
+        host="localhost",
+        database="nandor",
+        user="nandor",
+        password="password"
+    )
+
+    with conn:
+        with conn.cursor() as cursor:
+            cursor.execute("SELECT * FROM tickets")
+            rows = cursor.fetchall()
+
+    matches = []
+    for row in rows:
+        match = {
+            "ticket_address": row[0],
+            "max_tickets": row[1],
+            "ticket_date": row[2],
+            "match_name": row[3]
+        }
+        matches.append(match)
+
+    return matches
+
+
 def main():
     uvicorn.run(app, host="0.0.0.0", port=8000)
 
