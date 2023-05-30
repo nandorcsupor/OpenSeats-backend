@@ -1,4 +1,5 @@
 from fastapi import FastAPI, status
+import psycopg2
 import uvicorn
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -43,10 +44,33 @@ def create_match(match_data: dict):
         date=convert_to_timestamp(match_data['date'])
     )
 
-    status_code = status.HTTP_200_OK
-    message = f"Successfully deployed match smart contract at: {address}"
+    if address:
+        # Only if the ticket deployment was successful and an address is returned
 
-    return {"message": message, "status_code": status_code}
+        conn = psycopg2.connect(
+            host="localhost",
+            database="nandor",
+            user="nandor",
+            password="password"
+        )
+
+        with conn:
+            with conn.cursor() as cursor:
+                cursor.execute(
+                    "INSERT INTO tickets (ticket_address, max_tickets, ticket_date, match_name) "
+                    "VALUES (%s, %s, %s, %s)",
+                    (address, match_data['max_tickets'], match_data['date'], match_data['token_name'])
+                )
+    
+        status_code = status.HTTP_200_OK
+        message = f"Successfully deployed match smart contract at: {address}"
+
+        return {"message": message, "status_code": status_code}
+
+    error_code = status.HTTP_503_SERVICE_UNAVAILABLE
+    message = f"Some Error in the Backend"
+
+    return {"message": message, "status_code": error_code}
 
 def main():
     uvicorn.run(app, host="0.0.0.0", port=8000)

@@ -16,3 +16,13 @@ brownie test --network mainnet-fork
 # Run on Seplia
 - brownie run scripts/deploy.py --network sepolia
 
+# Run Server
+- brownie run scripts/api.py --network sepolia
+
+
+
+# TODO - 
+    - Now the venue config is hard-coded so no matter what the frontend passes in - fix that
+    - Everything is running locally - deploy somewhere
+        - Currently using a local postgresql database.
+

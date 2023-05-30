@@ -2,3 +2,4 @@ eth-brownie
 web3
 fastapi
 uvicorn
+psycopg2
