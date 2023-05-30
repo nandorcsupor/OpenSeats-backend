@@ -2,7 +2,6 @@
 where true fans get their tickets![facebook_profile_image](https://user-images.githubusercontent.com/79459355/235314704-4431ddaf-066c-494e-8e58-d79da18bc951.png)
 
 
-
 # Run test
 - We use `mainnet-fork` network to test locally
     - because we need the pricefeed when testing the smart contract
@@ -16,9 +15,4 @@ brownie test --network mainnet-fork
 
 # Run on Seplia
 - brownie run scripts/deploy.py --network sepolia
-
-
-
-# To RUN API
-    - docker-compose up
 
