@@ -29,3 +29,6 @@ brownie test --network mainnet-fork
     - Update the fetching of available matches - use a new method - currently we do an api call every second.
 
 
+# TODO NOW
+    - Buy NFT - endpoint + FE
+    - Bind NFT - Solidity contract change + endpoint  + FE

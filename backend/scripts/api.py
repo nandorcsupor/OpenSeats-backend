@@ -3,7 +3,7 @@ import psycopg2
 import uvicorn
 from fastapi.middleware.cors import CORSMiddleware
 
-from .deploy_match import deploy_match, convert_to_timestamp
+from .deploy_match import deploy_match, convert_to_timestamp, mint_ticket
 
 app = FastAPI()
 
@@ -97,6 +97,25 @@ def get_matches():
         matches.append(match)
 
     return matches
+
+
+@app.post("/buy-ticket")
+def buy_ticket(buy_ticket_data: dict):
+    ticket = mint_ticket(
+        ticket_contract=buy_ticket_data['ticket_contract'],
+        gate=buy_ticket_data['gate'],
+        section=buy_ticket_data['section'],
+        row=buy_ticket_data['row'],
+        seat=buy_ticket_data['seat'],
+        category=buy_ticket_data['category']
+    )
+
+    print('TICKET IN API:', ticket)
+
+    status_code = status.HTTP_200_OK
+    message = f"Successfully bought an NFT Ticket!: {ticket}"
+
+    return {"message": message, "status_code": status_code}
 
 
 def main():
