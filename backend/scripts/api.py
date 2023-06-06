@@ -13,14 +13,18 @@ origins = [
     # Add other allowed origins here
 ]
 
+# Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
+
+# TODO - Get rid of hardcoded venue config!
+# TODO - Until fixed - use these when minting tickets!
 venue_config = (
     ["Gate A", "Gate B", "Gate C", "Gate D"],
     ["Section A", "Section B", "Section C", "Section D"],
@@ -101,8 +105,9 @@ def get_matches():
 
 @app.post("/buy-ticket")
 def buy_ticket(buy_ticket_data: dict):
+    
     ticket = mint_ticket(
-        ticket_contract=buy_ticket_data['ticket_contract'],
+        ticket_contract_address=buy_ticket_data['ticket_contract_address'],
         gate=buy_ticket_data['gate'],
         section=buy_ticket_data['section'],
         row=buy_ticket_data['row'],
@@ -112,10 +117,39 @@ def buy_ticket(buy_ticket_data: dict):
 
     print('TICKET IN API:', ticket)
 
-    status_code = status.HTTP_200_OK
-    message = f"Successfully bought an NFT Ticket!: {ticket}"
+    # Only if the ticket NFT minting was successful
+    # Insert NFT into our database - so we can identify the holder later.
 
-    return {"message": message, "status_code": status_code}
+    if ticket:
+
+        conn = psycopg2.connect(
+            host="localhost",
+            database="nandor",
+            user="nandor",
+            password="password"
+        )
+
+        with conn:
+            with conn.cursor() as cursor:
+                cursor.execute(
+                    "INSERT INTO ticket_nfts (transaction_hash, gate, section, row, seat, category, token_id) "
+                    "VALUES (%s, %s, %s, %s, %s, %s, %s)",
+                    (str(ticket['transaction_hash']),
+                    buy_ticket_data['gate'], 
+                    buy_ticket_data['section'], 
+                    buy_ticket_data['row'],
+                    buy_ticket_data['seat'],
+                    buy_ticket_data['category'],
+                    ticket['token_id']
+                    )
+                )
+
+        status_code = status.HTTP_200_OK
+        message = f"Successfully bought an NFT Ticket!: {ticket}"
+
+        return {"message": message, "status_code": status_code}
+    print('ERRROR IN API')
+    return {"message": "Error!"}
 
 
 def main():

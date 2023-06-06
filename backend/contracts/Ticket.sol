@@ -54,6 +54,8 @@ contract Ticket is ERC721URIStorage {
         uint256 seat
     );
 
+    event TicketResold(uint256 indexed tokenId);
+
     struct TicketParams {
         string[] gates;
         string[] sections;
@@ -271,12 +273,12 @@ contract Ticket is ERC721URIStorage {
             TicketData storage ticket = tickets[tokenId];
             require(!ticket.isResold, "Ticket can only be resold once");
 
-            uint256 maxResalePrice = ticket.price + ((ticket.price * 5) / 100);
+            uint256 maxResalePrice = ticket.price;
             require(
                 msg.value <= maxResalePrice,
                 string(
                     abi.encodePacked(
-                        "Resale price is too high (> 5%). Max Resale Price: ",
+                        "Resale price cannot be higher than the original price. Max Resale Price: ",
                         Strings.toString(maxResalePrice),
                         ". Current Value: ",
                         Strings.toString(msg.value)
@@ -286,5 +288,20 @@ contract Ticket is ERC721URIStorage {
 
             ticket.isResold = true;
         }
+    }
+
+    function markTicketAsResold(uint256 tokenId) public {
+        require(_exists(tokenId), "Ticket does not exist");
+        require(
+            ownerOf(tokenId) == msg.sender,
+            "Caller is not the owner of the ticket"
+        );
+
+        TicketData storage ticket = tickets[tokenId];
+        require(!ticket.isResold, "Ticket is already marked as resold");
+
+        ticket.isResold = true;
+
+        emit TicketResold(tokenId);
     }
 }
