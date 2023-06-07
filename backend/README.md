@@ -33,8 +33,7 @@ brownie test --network mainnet-fork
     - Buy NFT - endpoint + FE - DONE
         - Add notification - DONE
     - Add "How it works" section to first page. - IN PROGRESS LATER
-    - Bind NFT - Solidity contract change + endpoint  + FE - IN PROGRESS
-        - Also
+    - Bind NFT - Solidity contract change + endpoint  + FE - DONE
 
 
 
@@ -51,3 +50,13 @@ CREATE TABLE ticket_nfts (
     email TEXT,
     full_name TEXT
 );
+
+
+# TODO - Add my tickets page which displays your tickets. currently just display all of them !
+# TODO - Maybe when someone buys a ticket they would have to immediately BIND THEM at the same time ? 
+    - Because this way scalpers would just sell their wallets to people - it would probably be harder - but still doable
+
+
+# Icons
+- are from flaticon
+
