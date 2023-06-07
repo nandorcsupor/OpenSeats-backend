@@ -54,7 +54,7 @@ contract Ticket is ERC721URIStorage {
         uint256 seat
     );
 
-    event TicketResold(uint256 indexed tokenId);
+    event TicketResold(string message);
 
     struct TicketParams {
         string[] gates;
@@ -302,6 +302,13 @@ contract Ticket is ERC721URIStorage {
 
         ticket.isResold = true;
 
-        emit TicketResold(tokenId);
+        string memory message = string(
+            abi.encodePacked(
+                "Ticket with ",
+                Strings.toString(tokenId),
+                " is binded!"
+            )
+        );
+        emit TicketResold(message);
     }
 }

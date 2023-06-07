@@ -61,16 +61,29 @@ def mint_ticket(ticket_contract_address, gate: str, section: str, row: int, seat
     transaction_hash = transaction_hash.split('\\')[0]
     transaction_hash = str(transaction_hash)
 
-    print('TRANSACTION HASH >>>>>>>>>>>>>>>>,', transaction_hash)
-
     # Extract the required fields and store them in a dictionary
     extracted_info = {
         'token_id': ticket_events['Transfer'][0]['tokenId'],
         'transaction_hash': transaction_hash
     }
-    print('Extraced info:', extracted_info)
 
     return extracted_info
+
+
+def bind_ticket_service(ticket_contract_address, token_id):
+    # For now - everything is bought with this account - later use the user's own account
+    account = get_account()
+    ticket_contract = Ticket.at(ticket_contract_address)
+
+    bind_receipt = ticket_contract.markTicketAsResold(
+        token_id,
+        {"from": account}
+    )
+
+    bind_events = bind_receipt.events
+
+    return bind_events
+
 
 
 def convert_to_timestamp(date_string):

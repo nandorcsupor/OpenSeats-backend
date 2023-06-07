@@ -30,5 +30,24 @@ brownie test --network mainnet-fork
 
 
 # TODO NOW
-    - Buy NFT - endpoint + FE
-    - Bind NFT - Solidity contract change + endpoint  + FE
+    - Buy NFT - endpoint + FE - DONE
+        - Add notification - DONE
+    - Add "How it works" section to first page. - IN PROGRESS LATER
+    - Bind NFT - Solidity contract change + endpoint  + FE - IN PROGRESS
+        - Also
+
+
+
+# Tables
+ticket_nfts:
+CREATE TABLE ticket_nfts (
+    transaction_hash TEXT,
+    gate TEXT,
+    section TEXT,
+    row TEXT,
+    seat TEXT,
+    category TEXT,
+    token_id TEXT,
+    email TEXT,
+    full_name TEXT
+);

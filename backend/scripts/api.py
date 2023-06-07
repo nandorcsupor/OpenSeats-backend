@@ -3,7 +3,7 @@ import psycopg2
 import uvicorn
 from fastapi.middleware.cors import CORSMiddleware
 
-from .deploy_match import deploy_match, convert_to_timestamp, mint_ticket
+from .deploy_match import bind_ticket_service, deploy_match, convert_to_timestamp, mint_ticket
 
 app = FastAPI()
 
@@ -132,15 +132,17 @@ def buy_ticket(buy_ticket_data: dict):
         with conn:
             with conn.cursor() as cursor:
                 cursor.execute(
-                    "INSERT INTO ticket_nfts (transaction_hash, gate, section, row, seat, category, token_id) "
-                    "VALUES (%s, %s, %s, %s, %s, %s, %s)",
+                    "INSERT INTO ticket_nfts (transaction_hash, gate, section, row, seat, category, token_id, email, full_name) "
+                    "VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)",
                     (str(ticket['transaction_hash']),
                     buy_ticket_data['gate'], 
                     buy_ticket_data['section'], 
                     buy_ticket_data['row'],
                     buy_ticket_data['seat'],
                     buy_ticket_data['category'],
-                    ticket['token_id']
+                    ticket['token_id'],
+                    buy_ticket_data['full_name'],
+                    buy_ticket_data['email']
                     )
                 )
 
@@ -150,6 +152,44 @@ def buy_ticket(buy_ticket_data: dict):
         return {"message": message, "status_code": status_code}
     print('ERRROR IN API')
     return {"message": "Error!"}
+
+
+@app.post("/bind-ticket")
+def bind_ticket(bind_ticket_data: dict):
+    ticket_contract_address= bind_ticket_data['ticket_contract_address']
+    token_id= bind_ticket_data['token_id']
+    email = bind_ticket_data['email']
+    full_name = bind_ticket_data['full_name']
+
+
+    bind_ticket_response = bind_ticket_service(
+        ticket_contract_address,
+        token_id
+    )
+
+    if bind_ticket_response:
+        conn = psycopg2.connect(
+            host="localhost",
+            database="nandor",
+            user="nandor",
+            password="password"
+        )
+
+        with conn:
+            with conn.cursor() as cursor:
+                cursor.execute(
+                    "INSERT INTO binded_tickets (contract_address, full_name, email, tokenid) "
+                    "VALUES (%s, %s, %s, %s)",
+                    (str(ticket_contract_address),
+                    full_name,
+                    email,
+                    token_id
+                    )
+                )
+
+        status_code = status.HTTP_200_OK
+        message = f"Successfully binded ticket:{bind_ticket_response}"
+        return {"message": message, "status_code": status_code}
 
 
 def main():
