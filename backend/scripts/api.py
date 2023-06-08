@@ -103,6 +103,33 @@ def get_matches():
     return matches
 
 
+@app.get("/get-binded-tickets")
+def get_matches():
+    conn = psycopg2.connect(
+        host="localhost",
+        database="nandor",
+        user="nandor",
+        password="password"
+    )
+
+    with conn:
+        with conn.cursor() as cursor:
+            cursor.execute("SELECT * FROM binded_tickets")
+            rows = cursor.fetchall()
+
+    tickets = []
+    for row in rows:
+        ticket = {
+            "contract_address": row[0],
+            "full_name": row[1],
+            "email": row[2],
+            "tokenid": row[3]
+        }
+        tickets.append(ticket)
+
+    return tickets
+
+
 @app.post("/buy-ticket")
 def buy_ticket(buy_ticket_data: dict):
     
